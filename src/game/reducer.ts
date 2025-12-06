@@ -5,6 +5,7 @@ import { ACTION_TEMPLATES } from './actions';
 import { selectRedTeamAction, getDiscoverableAssets } from './ai';
 import { checkVictoryConditions } from './victory';
 import { INITIAL_STATE } from './initialState';
+import { calculateTurnIncome } from './income';
 
 // Game balance constants
 const ATTACK_SUCCESS_RATE_WITH_FIREWALL = 0.5;
@@ -168,14 +169,36 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         };
       }
       
+      // Calculate income for the next turn
+      const income = calculateTurnIncome(state);
+      
+      // Apply income with caps
+      const newMoney = Math.min(
+        state.blueResources.money + income.money,
+        state.blueResources.maxMoney
+      );
+      const newStaff = Math.min(
+        state.blueResources.staff + income.staff,
+        state.blueResources.maxStaff
+      );
+      
+      // Build income notification
+      const incomeNotification = `💰 รายได้ประจำเทิร์น: +${income.money} เงิน, +${income.staff} พนักงาน`;
+      
       // Continue to next turn
       return {
         ...state,
         turnNumber: state.turnNumber + 1,
         phase: 'PLAYER_TURN',
+        blueResources: {
+          ...state.blueResources,
+          money: newMoney,
+          staff: newStaff,
+        },
         notifications: [
           ...state.notifications,
           `--- เทิร์นที่ ${state.turnNumber + 1} ---`,
+          incomeNotification,
         ],
       };
     }
@@ -383,6 +406,12 @@ function executeAction(
       } else {
         notifications.push('✅ ไม่พบระบบที่ถูกบุกรุก');
       }
+      break;
+    }
+    
+    case 'REST': {
+      // Do nothing - just wait for income next turn
+      notifications.push('😴 Blue Team พักผ่อน...');
       break;
     }
   }

@@ -37,7 +37,8 @@ export type ActionId =
   | 'DEPLOY_FIREWALL'
   | 'PATCH_ASSET'
   | 'DEPLOY_IDS'
-  | 'MONITOR';
+  | 'MONITOR'
+  | 'REST';
 
 export interface ActionTemplate {
   id: ActionId;
@@ -62,6 +63,11 @@ export interface PlayerResources {
   money: number;
   staff: number;
   redPoints: number;
+  // Income system fields
+  maxMoney: number;      // เงินสูงสุดที่เก็บได้
+  maxStaff: number;      // staff สูงสุด
+  baseIncome: number;    // รายได้พื้นฐานต่อเทิร์น
+  staffRecovery: number; // staff ฟื้นตัวต่อเทิร์น
 }
 
 export type Phase = 'PLAYER_TURN' | 'AI_TURN' | 'RESOLVE' | 'CHECK_WIN' | 'GAME_OVER';

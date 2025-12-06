@@ -84,4 +84,14 @@ export const ACTION_TEMPLATES: Record<string, ActionTemplate> = {
     duration: 1,
     requiresTarget: false,
   },
+  
+  REST: {
+    id: 'REST',
+    name: 'พักผ่อน',
+    description: 'ข้ามเทิร์นโดยไม่ทำอะไร รอรับรายได้เทิร์นหน้า',
+    team: 'BLUE',
+    cost: 0,
+    duration: 0,
+    requiresTarget: false,
+  },
 };

@@ -5,7 +5,7 @@ import { ACTION_TEMPLATES } from './actions';
 import { selectRedTeamAction, getDiscoverableAssets } from './ai';
 import { checkVictoryConditions } from './victory';
 import { INITIAL_STATE } from './initialState';
-import { calculateTurnIncome } from './income';
+import { calculateBlueIncome, calculateRedIncome, getRedActionCost } from './redEconomy';
 
 // Game balance constants
 const ATTACK_SUCCESS_RATE_WITH_FIREWALL = 0.5;
@@ -120,6 +120,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
     
     case 'AI_TURN': {
+      // Check if Red has enough resources to do anything
+      if (state.redResources.hackingPoints < 1) {
+        return {
+          ...state,
+          notifications: [
+            ...state.notifications,
+            '🔴 Red Team: รอจังหวะ... (แต้มไม่พอ)',
+          ],
+          phase: 'RESOLVE',
+        };
+      }
+      
       // Red AI selects an action
       const aiDecision = selectRedTeamAction(state);
       
@@ -128,13 +140,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ...state,
           notifications: [
             ...state.notifications,
-            '🔴 Red Team ไม่มี action ที่จะทำ',
+            '🔴 Red Team: รอจังหวะ... (แต้มไม่พอ)',
           ],
           phase: 'RESOLVE',
         };
       }
       
       const template = ACTION_TEMPLATES[aiDecision.actionId];
+      const cost = getRedActionCost(aiDecision.actionId);
+      
       const queuedAction: QueuedAction = {
         id: uuidv4(),
         templateId: aiDecision.actionId,
@@ -143,12 +157,19 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         remainingTurns: template.duration,
       };
       
+      // Deduct Red team cost
+      const newRedResources = {
+        ...state.redResources,
+        hackingPoints: state.redResources.hackingPoints - cost,
+      };
+      
       return {
         ...state,
         queue: [...state.queue, queuedAction],
+        redResources: newRedResources,
         notifications: [
           ...state.notifications,
-          `🔴 Red Team: ${template.name}${aiDecision.targetId ? ' → ' + state.assets.find(a => a.id === aiDecision.targetId)?.name : ''}`,
+          `🔴 Red Team: ${template.name}${aiDecision.targetId ? ' → ' + state.assets.find(a => a.id === aiDecision.targetId)?.name : ''} (-${cost} 💀)`,
         ],
         phase: 'RESOLVE',
       };
@@ -169,21 +190,29 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         };
       }
       
-      // Calculate income for the next turn
-      const income = calculateTurnIncome(state);
+      // Calculate income for both teams
+      const blueIncome = calculateBlueIncome(state);
+      const redIncome = calculateRedIncome(state);
       
       // Apply income with caps
       const newMoney = Math.min(
-        state.blueResources.money + income.money,
+        state.blueResources.money + blueIncome.money,
         state.blueResources.maxMoney
       );
       const newStaff = Math.min(
-        state.blueResources.staff + income.staff,
+        state.blueResources.staff + blueIncome.staff,
         state.blueResources.maxStaff
+      );
+      const newHackingPoints = Math.min(
+        state.redResources.hackingPoints + redIncome,
+        state.redResources.maxHackingPoints
       );
       
       // Build income notification
-      const incomeNotification = `💰 รายได้ประจำเทิร์น: +${income.money} เงิน, +${income.staff} พนักงาน`;
+      const incomeNotifications = [
+        `💰 Blue Team: +${blueIncome.money} เงิน, +${blueIncome.staff} พนักงาน`,
+        `🔴 Red Team: +${redIncome} แต้มแฮกกิ้ง`,
+      ];
       
       // Continue to next turn
       return {
@@ -195,10 +224,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           money: newMoney,
           staff: newStaff,
         },
+        redResources: {
+          ...state.redResources,
+          hackingPoints: newHackingPoints,
+        },
         notifications: [
           ...state.notifications,
           `--- เทิร์นที่ ${state.turnNumber + 1} ---`,
-          incomeNotification,
+          ...incomeNotifications,
         ],
       };
     }

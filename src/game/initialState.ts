@@ -1,14 +1,24 @@
 // Initial game state with network topology
-import { GameState, Asset } from './gameState';
+import { GameState, Asset, PlayerResources, RedResources } from './gameState';
 
 // Game balance constants
 export const GAME_BALANCE = {
+  // Blue Team
   INITIAL_MONEY: 15,        // เงินเริ่มต้น - พอสำหรับ 3-4 actions
   INITIAL_STAFF: 5,         // พนักงานเริ่มต้น
   MAX_MONEY: 50,            // เงินสูงสุด - ป้องกัน hoarding
   MAX_STAFF: 10,            // พนักงานสูงสุด
   BASE_INCOME: 3,           // รายได้พื้นฐานต่อเทิร์น
   STAFF_RECOVERY: 1,        // พนักงานฟื้นตัวต่อเทิร์น
+  
+  // Red Team
+  RED_STARTING_HACKING_POINTS: 5,
+  RED_MAX_HACKING_POINTS: 30,
+  RED_BASE_INCOME: 2,
+  RED_STARTING_BOTNET_SIZE: 0,
+  RED_STARTING_REPUTATION: 0,
+  
+  // Game Settings
   MAX_TURNS: 20,            // จำนวนเทิร์นทั้งหมด
 } as const;
 
@@ -115,6 +125,23 @@ export const INITIAL_ASSETS: Asset[] = [
   },
 ];
 
+const initialBlueResources: PlayerResources = {
+  money: GAME_BALANCE.INITIAL_MONEY,
+  staff: GAME_BALANCE.INITIAL_STAFF,
+  maxMoney: GAME_BALANCE.MAX_MONEY,
+  maxStaff: GAME_BALANCE.MAX_STAFF,
+  baseIncome: GAME_BALANCE.BASE_INCOME,
+  staffRecovery: GAME_BALANCE.STAFF_RECOVERY,
+};
+
+const initialRedResources: RedResources = {
+  hackingPoints: GAME_BALANCE.RED_STARTING_HACKING_POINTS,
+  maxHackingPoints: GAME_BALANCE.RED_MAX_HACKING_POINTS,
+  baseIncome: GAME_BALANCE.RED_BASE_INCOME,
+  botnetSize: GAME_BALANCE.RED_STARTING_BOTNET_SIZE,
+  reputation: GAME_BALANCE.RED_STARTING_REPUTATION,
+};
+
 export const INITIAL_STATE: GameState = {
   assets: INITIAL_ASSETS,
   queue: [],
@@ -122,24 +149,8 @@ export const INITIAL_STATE: GameState = {
   currentTurn: 'BLUE',
   phase: 'PLAYER_TURN',
   maxTurns: GAME_BALANCE.MAX_TURNS,
-  blueResources: {
-    money: GAME_BALANCE.INITIAL_MONEY,
-    staff: GAME_BALANCE.INITIAL_STAFF,
-    redPoints: 0,
-    maxMoney: GAME_BALANCE.MAX_MONEY,
-    maxStaff: GAME_BALANCE.MAX_STAFF,
-    baseIncome: GAME_BALANCE.BASE_INCOME,
-    staffRecovery: GAME_BALANCE.STAFF_RECOVERY,
-  },
-  redResources: {
-    money: 0,
-    staff: 0,
-    redPoints: 100,
-    maxMoney: 0,
-    maxStaff: 0,
-    baseIncome: 0,
-    staffRecovery: 0,
-  },
+  blueResources: initialBlueResources,
+  redResources: initialRedResources,
   notifications: ['🎮 เกมเริ่มต้น! Blue Team ป้องกันเครือข่ายจาก Red Team (AI)'],
   selectedAssetId: undefined,
 };

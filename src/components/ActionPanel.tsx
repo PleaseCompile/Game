@@ -7,7 +7,7 @@ export function ActionPanel() {
   const { state, queueAction, endTurn } = useGame();
   const { blueResources, selectedAssetId, phase } = state;
   
-  const blueActions: ActionId[] = ['DEPLOY_FIREWALL', 'PATCH_ASSET', 'DEPLOY_IDS', 'MONITOR'];
+  const blueActions: ActionId[] = ['DEPLOY_FIREWALL', 'PATCH_ASSET', 'DEPLOY_IDS', 'MONITOR', 'REST'];
   
   const canPerformAction = (actionId: ActionId): boolean => {
     if (phase !== 'PLAYER_TURN') return false;

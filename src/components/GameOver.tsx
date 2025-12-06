@@ -1,5 +1,4 @@
-import React from 'react';
-import { GameResult, GridHealth } from '../types/game';
+import { GridHealth } from '../types/game';
 
 interface GameOverProps {
   victory: boolean;

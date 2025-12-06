@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useGameState } from '../hooks/useGameState';
 import { useGameProgression } from '../hooks/useGameProgression';
 import { useAchievements } from '../hooks/useAchievements';
@@ -12,7 +12,6 @@ import { TutorialOverlay } from './TutorialOverlay';
 import { MentorDialog } from './MentorDialog';
 import { AchievementPopup } from './AchievementPopup';
 import { GameOver } from './GameOver';
-import { levels } from '../data/levels';
 import { isGameOver } from '../utils/gameLogic';
 import '../styles/game.css';
 
@@ -21,7 +20,6 @@ export function Game() {
     gameState,
     attackLogs,
     language,
-    startLevel,
     deployDefense,
     removeDefense,
     endTurn,

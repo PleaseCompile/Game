@@ -1,4 +1,3 @@
-import React from 'react';
 import { GridHealth } from '../types/game';
 import { getHealthColor, getHealthStatus } from '../utils/gameLogic';
 

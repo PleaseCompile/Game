@@ -1,4 +1,3 @@
-import React from 'react';
 import { AttackLog as AttackLogType } from '../types/game';
 
 interface AttackLogProps {

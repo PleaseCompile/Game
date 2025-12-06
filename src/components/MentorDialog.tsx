@@ -1,4 +1,3 @@
-import React from 'react';
 import { mentor } from '../data/story';
 
 interface MentorDialogProps {

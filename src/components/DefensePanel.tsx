@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Defense } from '../types/game';
-import { defensesByFunction } from '../data/defenses';
 import { getFunctionName } from '../utils/gameLogic';
 
 interface DefensePanelProps {

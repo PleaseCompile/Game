@@ -1,4 +1,3 @@
-import React from 'react';
 import { TutorialStep } from '../types/game';
 import { mentor } from '../data/story';
 

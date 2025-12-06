@@ -1,4 +1,4 @@
-import { GameState, Attack, Defense, GridHealth, AttackLog } from '../types/game';
+import { GameState, Attack, Defense, GridHealth } from '../types/game';
 import { attacks } from '../data/attacks';
 import { defenses } from '../data/defenses';
 

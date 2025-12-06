@@ -1,5 +1,19 @@
 // Red Team Economy System
-import { GameState } from './gameState';
+import { GameState, Asset, Vulnerability } from './gameState';
+import {
+  RED_BASE_INCOME,
+  RED_INCOME_SERVER,
+  RED_INCOME_WORKSTATION,
+  RED_INCOME_DATABASE,
+  RED_INCOME_GATEWAY,
+  RED_COST_RECON,
+  RED_COST_FIND_VULN,
+  RED_COST_ATTACK_HIGH_VULN,
+  RED_COST_ATTACK_OTHER,
+} from './balance';
+
+// Asset types that generate income for Red Team when compromised
+export const INCOME_GENERATING_ASSETS = ['SERVER', 'WORKSTATION', 'DB', 'GATEWAY'] as const;
 
 /**
  * Calculate Red Team income based on compromised assets
@@ -9,22 +23,22 @@ import { GameState } from './gameState';
  * Compromised DB: +5 hackingPoints/turn (sell data on dark web)
  */
 export function calculateRedIncome(state: GameState): number {
-  let income = 2; // base income
+  let income = RED_BASE_INCOME;
   
   state.assets.forEach(asset => {
     if (asset.status === 'COMPROMISED') {
       switch (asset.type) {
         case 'SERVER':
-          income += 3; // crypto mining
+          income += RED_INCOME_SERVER;
           break;
         case 'WORKSTATION':
-          income += 1; // botnet node
+          income += RED_INCOME_WORKSTATION;
           break;
         case 'DB':
-          income += 5; // sell data on dark web
+          income += RED_INCOME_DATABASE;
           break;
         case 'GATEWAY':
-          income += 2; // control point
+          income += RED_INCOME_GATEWAY;
           break;
         default:
           break;
@@ -56,24 +70,24 @@ export function calculateBlueIncome(state: GameState): number {
 /**
  * Get cost for a Red Team action based on asset
  */
-export function getRedActionCost(actionId: string, targetAsset?: any): number {
+export function getRedActionCost(actionId: string, targetAsset?: Asset): number {
   switch (actionId) {
     case 'HOST_SCAN':
     case 'PORT_SCAN':
-      return 1; // cheap reconnaissance
+      return RED_COST_RECON;
       
     case 'FIND_VULN':
-      return 2; // requires tools
+      return RED_COST_FIND_VULN;
       
     case 'ATTACK':
       // Cost varies by vulnerability severity
-      if (targetAsset?.vulnerabilities?.length > 0) {
+      if (targetAsset?.vulnerabilities?.length) {
         const highSeverity = targetAsset.vulnerabilities.some(
-          (v: any) => v.severity === 'HIGH'
+          (v: Vulnerability) => v.severity === 'HIGH'
         );
-        return highSeverity ? 3 : 4; // cheaper if high severity vuln
+        return highSeverity ? RED_COST_ATTACK_HIGH_VULN : RED_COST_ATTACK_OTHER;
       }
-      return 4; // default attack cost
+      return RED_COST_ATTACK_OTHER;
       
     default:
       return 0;

@@ -1,5 +1,6 @@
 // AssetInfoPanel - Display selected asset details
 import { useGame } from '../context/GameContext';
+import { INCOME_GENERATING_ASSETS } from '../game/redEconomy';
 
 export function AssetInfoPanel() {
   const { state } = useGame();
@@ -234,7 +235,7 @@ export function AssetInfoPanel() {
             {selectedAsset.type === 'WORKSTATION' && '🔴 ถูกใช้เป็น botnet node (+1 แต้ม/เทิร์นให้ Red)'}
             {selectedAsset.type === 'DB' && '🔴 ข้อมูลกำลังถูกขายใน dark web (+5 แต้ม/เทิร์นให้ Red)'}
             {selectedAsset.type === 'GATEWAY' && '🔴 ถูกใช้เป็นจุดควบคุม (+2 แต้ม/เทิร์นให้ Red)'}
-            {!['SERVER', 'WORKSTATION', 'DB', 'GATEWAY'].includes(selectedAsset.type) && 
+            {!INCOME_GENERATING_ASSETS.includes(selectedAsset.type as any) && 
               '🔴 กำลังถูกใช้โดย Red Team'}
           </div>
         </div>

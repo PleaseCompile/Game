@@ -1,5 +1,15 @@
 // Initial game state with network topology
 import { GameState, Asset } from './gameState';
+import {
+  BLUE_STARTING_MONEY,
+  BLUE_STARTING_STAFF,
+  BLUE_BASE_INCOME,
+  RED_STARTING_HACKING_POINTS,
+  RED_MAX_HACKING_POINTS,
+  RED_STARTING_BOTNET_SIZE,
+  RED_STARTING_REPUTATION,
+  MAX_TURNS,
+} from './balance';
 
 // Create initial network assets (5 nodes)
 export const INITIAL_ASSETS: Asset[] = [
@@ -110,17 +120,17 @@ export const INITIAL_STATE: GameState = {
   turnNumber: 1,
   currentTurn: 'BLUE',
   phase: 'PLAYER_TURN',
-  maxTurns: 20,
+  maxTurns: MAX_TURNS,
   blueResources: {
-    money: 15,
-    staff: 3,
-    income: 3,  // รายได้ต่อเทิร์น
+    money: BLUE_STARTING_MONEY,
+    staff: BLUE_STARTING_STAFF,
+    income: BLUE_BASE_INCOME,
   },
   redResources: {
-    hackingPoints: 5,        // เริ่มต้นมีพอสำหรับ 2-3 actions
-    maxHackingPoints: 30,
-    botnetSize: 0,
-    reputation: 0,
+    hackingPoints: RED_STARTING_HACKING_POINTS,
+    maxHackingPoints: RED_MAX_HACKING_POINTS,
+    botnetSize: RED_STARTING_BOTNET_SIZE,
+    reputation: RED_STARTING_REPUTATION,
   },
   notifications: ['🎮 เกมเริ่มต้น! Blue Team ป้องกันเครือข่ายจาก Red Team (AI)'],
   selectedAssetId: undefined,

@@ -5,6 +5,7 @@ import { ACTION_TEMPLATES } from './actions';
 import { selectRedTeamAction, getDiscoverableAssets } from './ai';
 import { checkVictoryConditions } from './victory';
 import { INITIAL_STATE } from './initialState';
+import { calculateRedIncome, calculateBlueIncome, getRedActionCost } from './redEconomy';
 
 // Game balance constants
 const ATTACK_SUCCESS_RATE_WITH_FIREWALL = 0.5;
@@ -80,6 +81,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'RESOLVE_ACTIONS': {
       let newState = { ...state };
       let notifications: string[] = [...state.notifications];
+      let assetsCompromised = 0;
       
       // Decrement remaining turns and execute completed actions
       const updatedQueue: QueuedAction[] = [];
@@ -102,6 +104,19 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         const result = executeAction(newState, action);
         newState = result.state;
         notifications = [...notifications, ...result.notifications];
+        
+        // Track compromised assets for reputation gain
+        if (result.compromisedAsset) {
+          assetsCompromised++;
+        }
+      }
+      
+      // Update Red Team reputation if they compromised assets
+      if (assetsCompromised > 0) {
+        newState.redResources = {
+          ...newState.redResources,
+          reputation: newState.redResources.reputation + assetsCompromised,
+        };
       }
       
       newState.notifications = notifications;
@@ -119,6 +134,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
     
     case 'AI_TURN': {
+      // Check if Red has enough resources to do anything
+      if (state.redResources.hackingPoints < 1) {
+        return {
+          ...state,
+          notifications: [
+            ...state.notifications,
+            '🔴 Red Team: รอจังหวะ... (สะสม resources)',
+          ],
+          phase: 'RESOLVE',
+        };
+      }
+      
       // Red AI selects an action
       const aiDecision = selectRedTeamAction(state);
       
@@ -127,13 +154,26 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ...state,
           notifications: [
             ...state.notifications,
-            '🔴 Red Team ไม่มี action ที่จะทำ',
+            '🔴 Red Team: รอจังหวะ... (แต้มไม่พอโจมตี)',
           ],
           phase: 'RESOLVE',
         };
       }
       
       const template = ACTION_TEMPLATES[aiDecision.actionId];
+      const targetAsset = aiDecision.targetId 
+        ? state.assets.find(a => a.id === aiDecision.targetId)
+        : undefined;
+      
+      // Calculate actual cost for this action
+      const actionCost = getRedActionCost(aiDecision.actionId, targetAsset);
+      
+      // Deduct hacking points
+      const newRedResources = {
+        ...state.redResources,
+        hackingPoints: state.redResources.hackingPoints - actionCost,
+      };
+      
       const queuedAction: QueuedAction = {
         id: uuidv4(),
         templateId: aiDecision.actionId,
@@ -145,9 +185,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         queue: [...state.queue, queuedAction],
+        redResources: newRedResources,
         notifications: [
           ...state.notifications,
-          `🔴 Red Team: ${template.name}${aiDecision.targetId ? ' → ' + state.assets.find(a => a.id === aiDecision.targetId)?.name : ''}`,
+          `🔴 Red Team ใช้ ${actionCost} แต้มแฮกกิ้ง: ${template.name}${aiDecision.targetId ? ' → ' + targetAsset?.name : ''}`,
         ],
         phase: 'RESOLVE',
       };
@@ -168,13 +209,66 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         };
       }
       
+      // Calculate income for both teams
+      const redIncome = calculateRedIncome(state);
+      const blueIncome = calculateBlueIncome(state);
+      
+      // Update resources with income
+      const newRedResources = {
+        ...state.redResources,
+        hackingPoints: Math.min(
+          state.redResources.hackingPoints + redIncome,
+          state.redResources.maxHackingPoints
+        ),
+      };
+      
+      const newBlueResources = {
+        ...state.blueResources,
+        money: state.blueResources.money + blueIncome,
+      };
+      
+      // Build income notifications
+      const incomeNotifications: string[] = [];
+      
+      if (redIncome > 0) {
+        const breakdown: string[] = ['2 base'];
+        state.assets.forEach(asset => {
+          if (asset.status === 'COMPROMISED') {
+            switch (asset.type) {
+              case 'SERVER':
+                breakdown.push('3 server');
+                break;
+              case 'WORKSTATION':
+                breakdown.push('1 workstation');
+                break;
+              case 'DB':
+                breakdown.push('5 database');
+                break;
+              case 'GATEWAY':
+                breakdown.push('2 gateway');
+                break;
+            }
+          }
+        });
+        incomeNotifications.push(
+          `🔴 Red Team ได้รับ +${redIncome} แต้มแฮกกิ้ง (${breakdown.join(' + ')})`
+        );
+      }
+      
+      if (blueIncome > 0) {
+        incomeNotifications.push(`💰 Blue Team ได้รับ +${blueIncome} เงิน`);
+      }
+      
       // Continue to next turn
       return {
         ...state,
         turnNumber: state.turnNumber + 1,
+        redResources: newRedResources,
+        blueResources: newBlueResources,
         phase: 'PLAYER_TURN',
         notifications: [
           ...state.notifications,
+          ...incomeNotifications,
           `--- เทิร์นที่ ${state.turnNumber + 1} ---`,
         ],
       };
@@ -193,9 +287,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 function executeAction(
   state: GameState,
   action: QueuedAction
-): { state: GameState; notifications: string[] } {
+): { state: GameState; notifications: string[]; compromisedAsset?: boolean } {
   const notifications: string[] = [];
   let newAssets = [...state.assets];
+  let compromisedAsset = false;
   
   const targetAsset = action.targetId
     ? newAssets.find(a => a.id === action.targetId)
@@ -293,6 +388,7 @@ function executeAction(
               status: 'COMPROMISED',
             };
             
+            compromisedAsset = true;
             notifications.push(`💀 Red Team ยึด ${targetAsset.name} สำเร็จ!`);
           } else {
             notifications.push(`🛡️ Firewall ป้องกันการโจมตี ${targetAsset.name}`);
@@ -390,5 +486,6 @@ function executeAction(
   return {
     state: { ...state, assets: newAssets },
     notifications,
+    compromisedAsset,
   };
 }

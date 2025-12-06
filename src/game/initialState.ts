@@ -112,14 +112,15 @@ export const INITIAL_STATE: GameState = {
   phase: 'PLAYER_TURN',
   maxTurns: 20,
   blueResources: {
-    money: 500,
+    money: 15,
     staff: 3,
-    redPoints: 0,
+    income: 3,  // รายได้ต่อเทิร์น
   },
   redResources: {
-    money: 0,
-    staff: 0,
-    redPoints: 100,
+    hackingPoints: 5,        // เริ่มต้นมีพอสำหรับ 2-3 actions
+    maxHackingPoints: 30,
+    botnetSize: 0,
+    reputation: 0,
   },
   notifications: ['🎮 เกมเริ่มต้น! Blue Team ป้องกันเครือข่ายจาก Red Team (AI)'],
   selectedAssetId: undefined,

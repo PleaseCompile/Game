@@ -61,7 +61,14 @@ export interface QueuedAction {
 export interface PlayerResources {
   money: number;
   staff: number;
-  redPoints: number;
+  income: number;  // รายได้ต่อเทิร์น
+}
+
+export interface RedResources {
+  hackingPoints: number;      // แต้มแฮกกิ้ง - ใช้สำหรับทุก action
+  maxHackingPoints: number;   // แต้มสูงสุด
+  botnetSize: number;         // ขนาด Botnet - ใช้สำหรับ brute force attacks
+  reputation: number;         // ชื่อเสียงในวงการ Hacker (unlock advanced attacks)
 }
 
 export type Phase = 'PLAYER_TURN' | 'AI_TURN' | 'RESOLVE' | 'CHECK_WIN' | 'GAME_OVER';
@@ -74,7 +81,7 @@ export interface GameState {
   phase: Phase;
   maxTurns: number;
   blueResources: PlayerResources;
-  redResources: PlayerResources;
+  redResources: RedResources;
   notifications: string[];  // Thai messages
   winner?: Team | 'DRAW';
   selectedAssetId?: string;

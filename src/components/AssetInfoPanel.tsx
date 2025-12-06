@@ -215,6 +215,30 @@ export function AssetInfoPanel() {
           </div>
         </div>
       )}
+      
+      {/* Compromised Asset Income Warning */}
+      {selectedAsset.status === 'COMPROMISED' && (
+        <div style={{
+          marginTop: '12px',
+          background: '#4c0f0f',
+          padding: '8px',
+          borderRadius: '4px',
+          fontSize: '12px',
+          border: '1px solid #ff4444',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
+            ⚠️ ระบบกำลังถูกใช้งาน!
+          </div>
+          <div>
+            {selectedAsset.type === 'SERVER' && '🔴 กำลังถูกใช้เป็น crypto miner (+3 แต้ม/เทิร์นให้ Red)'}
+            {selectedAsset.type === 'WORKSTATION' && '🔴 ถูกใช้เป็น botnet node (+1 แต้ม/เทิร์นให้ Red)'}
+            {selectedAsset.type === 'DB' && '🔴 ข้อมูลกำลังถูกขายใน dark web (+5 แต้ม/เทิร์นให้ Red)'}
+            {selectedAsset.type === 'GATEWAY' && '🔴 ถูกใช้เป็นจุดควบคุม (+2 แต้ม/เทิร์นให้ Red)'}
+            {!['SERVER', 'WORKSTATION', 'DB', 'GATEWAY'].includes(selectedAsset.type) && 
+              '🔴 กำลังถูกใช้โดย Red Team'}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

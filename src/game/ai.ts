@@ -1,18 +1,24 @@
-// Red Team AI - Rule-based decision making
+// Red Team AI - Rule-based decision making with resource management
 import { GameState, Asset, ActionId } from './gameState';
+import { getRedActionCost } from './redEconomy';
 
 export function selectRedTeamAction(state: GameState): {
   actionId: ActionId;
   targetId?: string;
 } | null {
-  const { assets } = state;
+  const { assets, redResources } = state;
+  
+  // Check if Red has enough resources to do anything
+  if (redResources.hackingPoints < 1) {
+    return null; // Not enough points for even the cheapest action
+  }
   
   // Get assets discovered and scanned by Red
   const discoveredAssets = assets.filter(a => a.discoveredByRed);
   const scannedAssets = discoveredAssets.filter(a => a.scannedPortsByRed);
   const compromisedAssets = assets.filter(a => a.status === 'COMPROMISED');
   
-  // Priority 1: Attack critical asset with vulnerabilities
+  // Priority 1: Attack critical asset with vulnerabilities (if we have enough points)
   const criticalWithVulns = scannedAssets.filter(
     a => a.isCritical && 
     a.vulnerabilities.length > 0 && 
@@ -20,10 +26,14 @@ export function selectRedTeamAction(state: GameState): {
   );
   
   if (criticalWithVulns.length > 0) {
-    return {
-      actionId: 'ATTACK',
-      targetId: criticalWithVulns[0].id,
-    };
+    const target = criticalWithVulns[0];
+    const cost = getRedActionCost('ATTACK', target);
+    if (redResources.hackingPoints >= cost) {
+      return {
+        actionId: 'ATTACK',
+        targetId: target.id,
+      };
+    }
   }
   
   // Priority 2: Attack any asset with high severity vulnerabilities
@@ -33,10 +43,14 @@ export function selectRedTeamAction(state: GameState): {
   );
   
   if (highVulnAssets.length > 0) {
-    return {
-      actionId: 'ATTACK',
-      targetId: highVulnAssets[0].id,
-    };
+    const target = highVulnAssets[0];
+    const cost = getRedActionCost('ATTACK', target);
+    if (redResources.hackingPoints >= cost) {
+      return {
+        actionId: 'ATTACK',
+        targetId: target.id,
+      };
+    }
   }
   
   // Priority 3: Find vulnerabilities on scanned assets without vulns
@@ -45,7 +59,7 @@ export function selectRedTeamAction(state: GameState): {
     a.status === 'SAFE'
   );
   
-  if (scannedNoVulns.length > 0) {
+  if (scannedNoVulns.length > 0 && redResources.hackingPoints >= 2) {
     return {
       actionId: 'FIND_VULN',
       targetId: scannedNoVulns[0].id,
@@ -57,7 +71,7 @@ export function selectRedTeamAction(state: GameState): {
     a => !a.scannedPortsByRed
   );
   
-  if (discoveredNotScanned.length > 0) {
+  if (discoveredNotScanned.length > 0 && redResources.hackingPoints >= 1) {
     return {
       actionId: 'PORT_SCAN',
       targetId: discoveredNotScanned[0].id,
@@ -77,7 +91,7 @@ export function selectRedTeamAction(state: GameState): {
       a => pivot.connectedTo.includes(a.id) && !a.discoveredByRed
     );
     
-    if (connectedAssets.length > 0) {
+    if (connectedAssets.length > 0 && redResources.hackingPoints >= 1) {
       // Host scan discovers assets
       return {
         actionId: 'HOST_SCAN',
@@ -85,7 +99,7 @@ export function selectRedTeamAction(state: GameState): {
     }
   }
   
-  // No valid action found
+  // No valid action found (not enough resources or no targets)
   return null;
 }
 

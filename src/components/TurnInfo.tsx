@@ -3,7 +3,7 @@ import { useGame } from '../context/GameContext';
 
 export function TurnInfo() {
   const { state } = useGame();
-  const { turnNumber, maxTurns, phase, currentTurn, blueResources, winner } = state;
+  const { turnNumber, maxTurns, phase, currentTurn, blueResources, redResources, winner } = state;
   
   const getPhaseText = () => {
     switch (phase) {
@@ -89,9 +89,36 @@ export function TurnInfo() {
             </span>
           </div>
           <div>
-            <span style={{ opacity: 0.8 }}>👥 บุคลากร:</span>{' '}
-            <span style={{ color: '#00d4ff', fontWeight: 'bold' }}>
-              {blueResources.staff}
+            <span style={{ opacity: 0.8 }}>📈 รายได้:</span>{' '}
+            <span style={{ color: '#4CAF50', fontWeight: 'bold' }}>
+              +{blueResources.income}/เทิร์น
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      {/* Red Team Resources (Intelligence) */}
+      <div style={{
+        marginTop: '16px',
+        background: '#0a0e27',
+        padding: '16px',
+        borderRadius: '6px',
+        border: '1px solid #ff4444',
+      }}>
+        <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '12px' }}>
+          🔴 ข่าวกรองฝ่ายตรงข้าม
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div>
+            <span style={{ opacity: 0.8 }}>💀 แต้มแฮกกิ้ง:</span>{' '}
+            <span style={{ color: '#ff4444', fontWeight: 'bold' }}>
+              {redResources.hackingPoints}/{redResources.maxHackingPoints}
+            </span>
+          </div>
+          <div>
+            <span style={{ opacity: 0.8 }}>⭐ ชื่อเสียง:</span>{' '}
+            <span style={{ color: '#ffd700', fontWeight: 'bold' }}>
+              {redResources.reputation}
             </span>
           </div>
         </div>

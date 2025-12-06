@@ -8,7 +8,7 @@ export const ACTION_TEMPLATES: Record<string, ActionTemplate> = {
     name: 'สแกนหาโฮสต์',
     description: 'ค้นหาอุปกรณ์ในเครือข่าย (ค้นพบ assets ในโซนถัดไป)',
     team: 'RED',
-    cost: 0,
+    cost: 1,  // แต้มแฮกกิ้ง - reconnaissance
     duration: 1,
     requiresTarget: false,
   },
@@ -18,7 +18,7 @@ export const ACTION_TEMPLATES: Record<string, ActionTemplate> = {
     name: 'สแกนพอร์ต',
     description: 'สแกนพอร์ตเพื่อระบุประเภทของอุปกรณ์',
     team: 'RED',
-    cost: 0,
+    cost: 1,  // แต้มแฮกกิ้ง - reconnaissance
     duration: 1,
     requiresTarget: true,
   },
@@ -28,7 +28,7 @@ export const ACTION_TEMPLATES: Record<string, ActionTemplate> = {
     name: 'ค้นหาช่องโหว่',
     description: 'ค้นหาช่องโหว่ในระบบเป้าหมาย',
     team: 'RED',
-    cost: 0,
+    cost: 2,  // แต้มแฮกกิ้ง - ต้องใช้ tools
     duration: 2,
     requiresTarget: true,
   },
@@ -38,7 +38,7 @@ export const ACTION_TEMPLATES: Record<string, ActionTemplate> = {
     name: 'โจมตี',
     description: 'โจมตีช่องโหว่เพื่อยึดครองระบบ',
     team: 'RED',
-    cost: 0,
+    cost: 4,  // แต้มแฮกกิ้ง - แพง (3-5 ขึ้นกับ severity)
     duration: 1,
     requiresTarget: true,
     canTargetCompromised: false,

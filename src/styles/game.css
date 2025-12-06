@@ -22,7 +22,7 @@
 }
 
 body {
-  font-family: 'Courier New', monospace;
+  font-family: 'Leelawadee UI', 'Tahoma', 'Arial Unicode MS', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
   overflow-x: hidden;

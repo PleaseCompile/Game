@@ -28,7 +28,7 @@ export function checkVictoryConditions(state: GameState): {
   }
   
   // Check turn limit
-  if (state.turnNumber > state.maxTurns) {
+  if (state.turnNumber >= state.maxTurns) {
     // Blue survives = Blue wins
     if (!compromisedCritical) {
       return {

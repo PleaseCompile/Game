@@ -56,7 +56,8 @@ export function GameBoard() {
           
           {/* Draw assets */}
           {assets.map(asset => {
-            const isVisible = asset.discoveredByRed || state.currentTurn === 'BLUE';
+            // Blue Team always sees all assets, Red only sees discovered ones
+            const isVisible = true; // Player is always Blue Team, so show all assets
             
             if (!isVisible) return null;
             

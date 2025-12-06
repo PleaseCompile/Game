@@ -4,6 +4,11 @@ import { GameState, GameAction, QueuedAction, Vulnerability } from './gameState'
 import { ACTION_TEMPLATES } from './actions';
 import { selectRedTeamAction, getDiscoverableAssets } from './ai';
 import { checkVictoryConditions } from './victory';
+import { INITIAL_STATE } from './initialState';
+
+// Game balance constants
+const ATTACK_SUCCESS_RATE_WITH_FIREWALL = 0.5;
+const ATTACK_SUCCESS_RATE_WITHOUT_FIREWALL = 0.7;
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
@@ -176,17 +181,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
     
     case 'RESET_GAME': {
-      // Dynamic import is not straightforward in TypeScript, so we'll just return a new state
-      // The proper way would be to pass INITIAL_STATE as a dependency
-      return {
-        ...state,
-        // Reset to initial values
-        turnNumber: 1,
-        phase: 'PLAYER_TURN',
-        currentTurn: 'BLUE',
-        winner: undefined,
-        notifications: ['🎮 เกมรีเซ็ตแล้ว!'],
-      };
+      return INITIAL_STATE;
     }
     
     default:
@@ -288,7 +283,9 @@ function executeAction(
         if (index !== -1) {
           // Check if protected by firewall
           const hasFirewall = newAssets[index].controls.some(c => c.type === 'FIREWALL');
-          const attackSuccess = hasFirewall ? Math.random() > 0.5 : Math.random() > 0.3;
+          const attackSuccess = hasFirewall 
+            ? Math.random() > (1 - ATTACK_SUCCESS_RATE_WITH_FIREWALL)
+            : Math.random() > (1 - ATTACK_SUCCESS_RATE_WITHOUT_FIREWALL);
           
           if (attackSuccess) {
             newAssets[index] = {
@@ -333,9 +330,9 @@ function executeAction(
         const index = newAssets.findIndex(a => a.id === targetAsset.id);
         
         if (index !== -1) {
-          // Remove one vulnerability
+          // Remove the first vulnerability for predictable behavior
           const newVulns = [...newAssets[index].vulnerabilities];
-          newVulns.pop();
+          newVulns.shift();
           
           newAssets[index] = {
             ...newAssets[index],

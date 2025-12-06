@@ -89,14 +89,14 @@ export function TurnInfo() {
           <div>
             <span style={{ opacity: 0.8 }}>💰 เงิน:</span>{' '}
             <span style={{ color: '#ffd700', fontWeight: 'bold' }}>
-              {blueResources.money}
+              {blueResources.money} บาท
             </span>
             <span style={{ opacity: 0.6, fontSize: '12px' }}> / {blueResources.maxMoney}</span>
           </div>
           <div>
             <span style={{ opacity: 0.8 }}>👥 บุคลากร:</span>{' '}
             <span style={{ color: '#00d4ff', fontWeight: 'bold' }}>
-              {blueResources.staff}
+              {blueResources.staff} คน
             </span>
             <span style={{ opacity: 0.6, fontSize: '12px' }}> / {blueResources.maxStaff}</span>
           </div>

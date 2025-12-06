@@ -1,6 +1,17 @@
 // Initial game state with network topology
 import { GameState, Asset } from './gameState';
 
+// Game balance constants
+export const GAME_BALANCE = {
+  INITIAL_MONEY: 15,        // เงินเริ่มต้น - พอสำหรับ 3-4 actions
+  INITIAL_STAFF: 5,         // พนักงานเริ่มต้น
+  MAX_MONEY: 50,            // เงินสูงสุด - ป้องกัน hoarding
+  MAX_STAFF: 10,            // พนักงานสูงสุด
+  BASE_INCOME: 3,           // รายได้พื้นฐานต่อเทิร์น
+  STAFF_RECOVERY: 1,        // พนักงานฟื้นตัวต่อเทิร์น
+  MAX_TURNS: 20,            // จำนวนเทิร์นทั้งหมด
+} as const;
+
 // Create initial network assets (5 nodes)
 export const INITIAL_ASSETS: Asset[] = [
   {
@@ -110,15 +121,15 @@ export const INITIAL_STATE: GameState = {
   turnNumber: 1,
   currentTurn: 'BLUE',
   phase: 'PLAYER_TURN',
-  maxTurns: 20,
+  maxTurns: GAME_BALANCE.MAX_TURNS,
   blueResources: {
-    money: 15,           // เริ่มต้น 15 เพียงพอสำหรับ 3-4 actions
-    staff: 5,            // เริ่มต้น 5 คน
+    money: GAME_BALANCE.INITIAL_MONEY,
+    staff: GAME_BALANCE.INITIAL_STAFF,
     redPoints: 0,
-    maxMoney: 50,        // เงินสูงสุด
-    maxStaff: 10,        // พนักงานสูงสุด
-    baseIncome: 3,       // รายได้ขั้นต่ำต่อเทิร์น
-    staffRecovery: 1,    // ฟื้น 1 คนต่อเทิร์น
+    maxMoney: GAME_BALANCE.MAX_MONEY,
+    maxStaff: GAME_BALANCE.MAX_STAFF,
+    baseIncome: GAME_BALANCE.BASE_INCOME,
+    staffRecovery: GAME_BALANCE.STAFF_RECOVERY,
   },
   redResources: {
     money: 0,

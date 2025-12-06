@@ -7,6 +7,15 @@ export interface IncomeResult {
   breakdown: string[];
 }
 
+// Asset income rates (configurable for game balancing)
+export const ASSET_INCOME_RATES = {
+  SERVER: 2,
+  WORKSTATION: 1,
+  DB: 3,
+  GATEWAY: 0,
+  INTERNET: 0,
+} as const;
+
 /**
  * Calculate income for the next turn based on current game state
  * @param state Current game state
@@ -25,25 +34,12 @@ export function calculateTurnIncome(state: GameState): IncomeResult {
   
   state.assets.forEach(asset => {
     if (asset.status === 'SAFE') {
-      let incomeAmount = 0;
+      const incomeAmount = ASSET_INCOME_RATES[asset.type];
       
-      switch (asset.type) {
-        case 'SERVER':
-          incomeAmount = 2;
-          assetDetails.push(`${asset.name} +${incomeAmount}`);
-          break;
-        case 'WORKSTATION':
-          incomeAmount = 1;
-          assetDetails.push(`${asset.name} +${incomeAmount}`);
-          break;
-        case 'DB':
-          incomeAmount = 3;
-          assetDetails.push(`${asset.name} +${incomeAmount}`);
-          break;
-        // GATEWAY and INTERNET don't generate income
+      if (incomeAmount > 0) {
+        assetIncome += incomeAmount;
+        assetDetails.push(`${asset.name} +${incomeAmount}`);
       }
-      
-      assetIncome += incomeAmount;
     }
   });
   

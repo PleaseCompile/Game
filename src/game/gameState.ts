@@ -9,9 +9,11 @@ export interface Vulnerability {
   severity: 'LOW' | 'MEDIUM' | 'HIGH';
 }
 
+export type SecurityControlType = 'FIREWALL' | 'IDS' | 'PATCHED' | 'FORENSICS_BONUS';
+
 export interface SecurityControl {
   id: string;
-  type: 'FIREWALL' | 'IDS' | 'PATCHED';
+  type: SecurityControlType;
 }
 
 export interface Asset {
@@ -38,14 +40,16 @@ export type ActionId =
   | 'PATCH_ASSET'
   | 'DEPLOY_IDS'
   | 'MONITOR'
-  | 'REST';
+  | 'REST'
+  | 'INCIDENT_RESPONSE'
+  | 'FORENSICS';
 
 export interface ActionTemplate {
   id: ActionId;
   name: string;           // Thai name
   description: string;    // Thai description
   team: Team;
-  cost: number;
+  cost: number | { blueMoney: number; blueStaff: number };
   duration: number;       // turns to complete
   requiresTarget: boolean;
   canTargetCompromised?: boolean;

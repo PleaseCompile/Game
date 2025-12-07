@@ -94,4 +94,25 @@ export const ACTION_TEMPLATES: Record<string, ActionTemplate> = {
     duration: 0,
     requiresTarget: false,
   },
+  
+  INCIDENT_RESPONSE: {
+    id: 'INCIDENT_RESPONSE',
+    name: 'ตอบสนองเหตุการณ์',
+    description: 'กู้คืน asset ที่ถูกยึดกลับมาเป็นปกติ',
+    team: 'BLUE',
+    cost: { blueMoney: 5, blueStaff: 2 },
+    duration: 1,
+    requiresTarget: true,
+    canTargetCompromised: true,
+  },
+  
+  FORENSICS: {
+    id: 'FORENSICS',
+    name: 'ตรวจสอบนิติวิทยาศาสตร์',
+    description: 'วิเคราะห์การโจมตี เพิ่มความสามารถป้องกันให้ asset',
+    team: 'BLUE',
+    cost: { blueMoney: 3, blueStaff: 1 },
+    duration: 2,
+    requiresTarget: true,
+  },
 };

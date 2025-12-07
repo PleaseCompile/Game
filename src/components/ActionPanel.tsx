@@ -5,9 +5,9 @@ import { ActionId } from '../game/gameState';
 
 export function ActionPanel() {
   const { state, queueAction, endTurn } = useGame();
-  const { blueResources, selectedAssetId, phase } = state;
+  const { blueResources, selectedAssetId, phase, assets } = state;
   
-  const blueActions: ActionId[] = ['DEPLOY_FIREWALL', 'PATCH_ASSET', 'DEPLOY_IDS', 'MONITOR', 'REST'];
+  const blueActions: ActionId[] = ['DEPLOY_FIREWALL', 'PATCH_ASSET', 'DEPLOY_IDS', 'MONITOR', 'REST', 'INCIDENT_RESPONSE', 'FORENSICS'];
   
   const canPerformAction = (actionId: ActionId): boolean => {
     if (phase !== 'PLAYER_TURN') return false;
@@ -16,10 +16,26 @@ export function ActionPanel() {
     if (!template) return false;
     
     // Check cost
-    if (blueResources.money < template.cost) return false;
+    if (typeof template.cost === 'number') {
+      if (blueResources.money < template.cost) return false;
+    } else {
+      if (blueResources.money < template.cost.blueMoney) return false;
+      if (blueResources.staff < template.cost.blueStaff) return false;
+    }
     
     // Check if target is required
     if (template.requiresTarget && !selectedAssetId) return false;
+    
+    // Check if action can target the selected asset
+    if (template.requiresTarget && selectedAssetId) {
+      const selectedAsset = assets.find(a => a.id === selectedAssetId);
+      if (!selectedAsset) return false;
+      
+      // INCIDENT_RESPONSE can only target COMPROMISED assets
+      if (actionId === 'INCIDENT_RESPONSE' && selectedAsset.status !== 'COMPROMISED') {
+        return false;
+      }
+    }
     
     return true;
   };
@@ -31,6 +47,17 @@ export function ActionPanel() {
     const targetId = template.requiresTarget ? selectedAssetId : undefined;
     
     queueAction(actionId, targetId);
+  };
+  
+  const getActionIcon = (actionId: ActionId): string => {
+    switch (actionId) {
+      case 'INCIDENT_RESPONSE':
+        return '🛠️ ';
+      case 'FORENSICS':
+        return '🔍 ';
+      default:
+        return '';
+    }
   };
   
   return (
@@ -53,6 +80,12 @@ export function ActionPanel() {
         {blueActions.map(actionId => {
           const template = ACTION_TEMPLATES[actionId];
           const canPerform = canPerformAction(actionId);
+          const selectedAsset = selectedAssetId ? assets.find(a => a.id === selectedAssetId) : undefined;
+          
+          // Check if INCIDENT_RESPONSE is disabled due to wrong asset status
+          const isIncidentResponseInvalid = actionId === 'INCIDENT_RESPONSE' 
+            && selectedAsset 
+            && selectedAsset.status !== 'COMPROMISED';
           
           return (
             <button
@@ -84,17 +117,25 @@ export function ActionPanel() {
               }}
             >
               <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
-                {template.name}
+                {getActionIcon(actionId)}{template.name}
               </div>
               <div style={{ fontSize: '12px', marginBottom: '4px', opacity: 0.8 }}>
                 {template.description}
               </div>
               <div style={{ fontSize: '12px', color: '#ffd700' }}>
-                💰 Cost: {template.cost} | ⏱️ Duration: {template.duration} เทิร์น
+                {typeof template.cost === 'number' 
+                  ? `💰 Cost: ${template.cost}` 
+                  : `💰 ${template.cost.blueMoney} | 👤 ${template.cost.blueStaff}`
+                } | ⏱️ {template.duration} เทิร์น
               </div>
               {template.requiresTarget && !selectedAssetId && (
                 <div style={{ fontSize: '11px', color: '#ff6b6b', marginTop: '4px' }}>
                   ⚠️ ต้องเลือก Asset ก่อน
+                </div>
+              )}
+              {isIncidentResponseInvalid && (
+                <div style={{ fontSize: '11px', color: '#ff6b6b', marginTop: '4px' }}>
+                  ⚠️ ใช้ได้เฉพาะ Asset ที่ถูกยึด
                 </div>
               )}
             </button>

@@ -49,6 +49,17 @@ export function ActionPanel() {
     queueAction(actionId, targetId);
   };
   
+  const getActionIcon = (actionId: ActionId): string => {
+    switch (actionId) {
+      case 'INCIDENT_RESPONSE':
+        return '🛠️ ';
+      case 'FORENSICS':
+        return '🔍 ';
+      default:
+        return '';
+    }
+  };
+  
   return (
     <div style={{
       background: '#16213e',
@@ -100,7 +111,7 @@ export function ActionPanel() {
               }}
             >
               <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
-                {actionId === 'INCIDENT_RESPONSE' ? '🛠️ ' : actionId === 'FORENSICS' ? '🔍 ' : ''}{template.name}
+                {getActionIcon(actionId)}{template.name}
               </div>
               <div style={{ fontSize: '12px', marginBottom: '4px', opacity: 0.8 }}>
                 {template.description}

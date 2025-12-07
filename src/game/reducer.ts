@@ -8,6 +8,7 @@ import { INITIAL_STATE } from './initialState';
 import { calculateBlueIncome, calculateRedIncome, getRedActionCost } from './redEconomy';
 
 // Defense reduction constants for attack success calculation
+const BASE_ATTACK_SUCCESS_RATE = 0.7;
 const DEFENSE_REDUCTION_FIREWALL = 0.2;
 const DEFENSE_REDUCTION_IDS = 0.2;
 const DEFENSE_REDUCTION_FORENSICS = 0.15;
@@ -381,7 +382,7 @@ function executeAction(
           const hasForensicsBonus = newAssets[index].controls.some(c => c.type === 'FORENSICS_BONUS');
           
           // Calculate attack success rate
-          let baseChance = 0.7;
+          let baseChance = BASE_ATTACK_SUCCESS_RATE;
           if (hasFirewall) baseChance -= DEFENSE_REDUCTION_FIREWALL;
           if (hasIDS) baseChance -= DEFENSE_REDUCTION_IDS;
           if (hasForensicsBonus) baseChance -= DEFENSE_REDUCTION_FORENSICS;
@@ -396,11 +397,12 @@ function executeAction(
             
             notifications.push(`💀 Red Team ยึด ${targetAsset.name} สำเร็จ!`);
           } else {
+            // Build defense notification
             const defenses = [];
             if (hasFirewall) defenses.push('Firewall');
             if (hasIDS) defenses.push('IDS');
-            if (hasForensicsBonus) defenses.push('Forensics Bonus');
-            const defenseStr = defenses.join(', ');
+            if (hasForensicsBonus) defenses.push('Forensics');
+            const defenseStr = defenses.join(' + ');
             notifications.push(`🛡️ ${defenseStr} ป้องกันการโจมตี ${targetAsset.name}`);
           }
         }

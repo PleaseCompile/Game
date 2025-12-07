@@ -376,16 +376,19 @@ function executeAction(
         const index = newAssets.findIndex(a => a.id === targetAsset.id);
         
         if (index !== -1) {
-          // Check if protected by firewall, IDS, or forensics bonus
+          // Check defense controls
           const hasFirewall = newAssets[index].controls.some(c => c.type === 'FIREWALL');
           const hasIDS = newAssets[index].controls.some(c => c.type === 'IDS');
           const hasForensicsBonus = newAssets[index].controls.some(c => c.type === 'FORENSICS_BONUS');
           
-          // Calculate attack success rate
+          // Calculate attack success rate with cumulative defense reductions
           let baseChance = BASE_ATTACK_SUCCESS_RATE;
           if (hasFirewall) baseChance -= DEFENSE_REDUCTION_FIREWALL;
           if (hasIDS) baseChance -= DEFENSE_REDUCTION_IDS;
           if (hasForensicsBonus) baseChance -= DEFENSE_REDUCTION_FORENSICS;
+          
+          // Ensure baseChance doesn't go negative
+          baseChance = Math.max(0, baseChance);
           
           const attackSuccess = Math.random() < baseChance;
           

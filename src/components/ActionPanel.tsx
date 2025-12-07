@@ -80,6 +80,12 @@ export function ActionPanel() {
         {blueActions.map(actionId => {
           const template = ACTION_TEMPLATES[actionId];
           const canPerform = canPerformAction(actionId);
+          const selectedAsset = selectedAssetId ? assets.find(a => a.id === selectedAssetId) : undefined;
+          
+          // Check if INCIDENT_RESPONSE is disabled due to wrong asset status
+          const isIncidentResponseInvalid = actionId === 'INCIDENT_RESPONSE' 
+            && selectedAsset 
+            && selectedAsset.status !== 'COMPROMISED';
           
           return (
             <button
@@ -127,12 +133,10 @@ export function ActionPanel() {
                   ⚠️ ต้องเลือก Asset ก่อน
                 </div>
               )}
-              {actionId === 'INCIDENT_RESPONSE' && selectedAssetId && (
-                assets.find(a => a.id === selectedAssetId)?.status !== 'COMPROMISED' && (
-                  <div style={{ fontSize: '11px', color: '#ff6b6b', marginTop: '4px' }}>
-                    ⚠️ ใช้ได้เฉพาะ Asset ที่ถูกยึด
-                  </div>
-                )
+              {isIncidentResponseInvalid && (
+                <div style={{ fontSize: '11px', color: '#ff6b6b', marginTop: '4px' }}>
+                  ⚠️ ใช้ได้เฉพาะ Asset ที่ถูกยึด
+                </div>
               )}
             </button>
           );

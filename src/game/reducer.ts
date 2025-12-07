@@ -7,10 +7,6 @@ import { checkVictoryConditions } from './victory';
 import { INITIAL_STATE } from './initialState';
 import { calculateBlueIncome, calculateRedIncome, getRedActionCost } from './redEconomy';
 
-// Game balance constants
-const ATTACK_SUCCESS_RATE_WITH_FIREWALL = 0.5;
-const ATTACK_SUCCESS_RATE_WITHOUT_FIREWALL = 0.7;
-
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case 'SELECT_ASSET':
@@ -23,15 +19,40 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const template = ACTION_TEMPLATES[action.actionId];
       if (!template) return state;
       
-      // Check if Blue has enough money
-      if (template.team === 'BLUE' && state.blueResources.money < template.cost) {
-        return {
-          ...state,
-          notifications: [
-            ...state.notifications,
-            `❌ เงินไม่เพียงพอ! ต้องการ ${template.cost} บาท`,
-          ],
-        };
+      // Check if Blue has enough resources
+      if (template.team === 'BLUE') {
+        if (typeof template.cost === 'number') {
+          // Old-style cost (just money)
+          if (state.blueResources.money < template.cost) {
+            return {
+              ...state,
+              notifications: [
+                ...state.notifications,
+                `❌ เงินไม่เพียงพอ! ต้องการ ${template.cost} บาท`,
+              ],
+            };
+          }
+        } else {
+          // New-style cost (money and staff)
+          if (state.blueResources.money < template.cost.blueMoney) {
+            return {
+              ...state,
+              notifications: [
+                ...state.notifications,
+                `❌ เงินไม่เพียงพอ! ต้องการ ${template.cost.blueMoney} บาท`,
+              ],
+            };
+          }
+          if (state.blueResources.staff < template.cost.blueStaff) {
+            return {
+              ...state,
+              notifications: [
+                ...state.notifications,
+                `❌ พนักงานไม่เพียงพอ! ต้องการ ${template.cost.blueStaff} คน`,
+              ],
+            };
+          }
+        }
       }
       
       // Check if target is required
@@ -55,9 +76,21 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       };
       
       // Deduct cost for Blue team
-      const newBlueResources = template.team === 'BLUE'
-        ? { ...state.blueResources, money: state.blueResources.money - template.cost }
-        : state.blueResources;
+      let newBlueResources = state.blueResources;
+      if (template.team === 'BLUE') {
+        if (typeof template.cost === 'number') {
+          newBlueResources = {
+            ...state.blueResources,
+            money: state.blueResources.money - template.cost,
+          };
+        } else {
+          newBlueResources = {
+            ...state.blueResources,
+            money: state.blueResources.money - template.cost.blueMoney,
+            staff: state.blueResources.staff - template.cost.blueStaff,
+          };
+        }
+      }
       
       return {
         ...state,
@@ -337,11 +370,18 @@ function executeAction(
         const index = newAssets.findIndex(a => a.id === targetAsset.id);
         
         if (index !== -1) {
-          // Check if protected by firewall
+          // Check if protected by firewall, IDS, or forensics bonus
           const hasFirewall = newAssets[index].controls.some(c => c.type === 'FIREWALL');
-          const attackSuccess = hasFirewall 
-            ? Math.random() > (1 - ATTACK_SUCCESS_RATE_WITH_FIREWALL)
-            : Math.random() > (1 - ATTACK_SUCCESS_RATE_WITHOUT_FIREWALL);
+          const hasIDS = newAssets[index].controls.some(c => c.type === 'IDS');
+          const hasForensicsBonus = newAssets[index].controls.some(c => c.type === 'FORENSICS_BONUS');
+          
+          // Calculate attack success rate
+          let baseChance = 0.7;
+          if (hasFirewall) baseChance -= 0.2;
+          if (hasIDS) baseChance -= 0.2;
+          if (hasForensicsBonus) baseChance -= 0.15;
+          
+          const attackSuccess = Math.random() < baseChance;
           
           if (attackSuccess) {
             newAssets[index] = {
@@ -351,7 +391,12 @@ function executeAction(
             
             notifications.push(`💀 Red Team ยึด ${targetAsset.name} สำเร็จ!`);
           } else {
-            notifications.push(`🛡️ Firewall ป้องกันการโจมตี ${targetAsset.name}`);
+            const defenses = [];
+            if (hasFirewall) defenses.push('Firewall');
+            if (hasIDS) defenses.push('IDS');
+            if (hasForensicsBonus) defenses.push('Forensics Bonus');
+            const defenseStr = defenses.join(', ');
+            notifications.push(`🛡️ ${defenseStr} ป้องกันการโจมตี ${targetAsset.name}`);
           }
         }
       }
@@ -445,6 +490,46 @@ function executeAction(
     case 'REST': {
       // Do nothing - just wait for income next turn
       notifications.push('😴 Blue Team พักผ่อน...');
+      break;
+    }
+    
+    case 'INCIDENT_RESPONSE': {
+      if (targetAsset && targetAsset.status === 'COMPROMISED') {
+        const index = newAssets.findIndex(a => a.id === targetAsset.id);
+        
+        if (index !== -1) {
+          newAssets[index] = {
+            ...newAssets[index],
+            status: 'SAFE',
+          };
+          
+          notifications.push(`🛠️ กู้คืน ${targetAsset.name} สำเร็จ!`);
+        }
+      }
+      break;
+    }
+    
+    case 'FORENSICS': {
+      if (targetAsset) {
+        const index = newAssets.findIndex(a => a.id === targetAsset.id);
+        
+        if (index !== -1) {
+          // Check if already has forensics bonus
+          const hasForensicsBonus = newAssets[index].controls.some(c => c.type === 'FORENSICS_BONUS');
+          
+          if (!hasForensicsBonus) {
+            newAssets[index] = {
+              ...newAssets[index],
+              controls: [
+                ...newAssets[index].controls,
+                { id: uuidv4(), type: 'FORENSICS_BONUS' },
+              ],
+            };
+            
+            notifications.push(`🔍 วิเคราะห์ ${targetAsset.name} เสร็จสิ้น - เพิ่ม defense bonus!`);
+          }
+        }
+      }
       break;
     }
   }

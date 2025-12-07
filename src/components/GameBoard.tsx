@@ -142,6 +142,15 @@ export function GameBoard() {
                     fontSize={16}
                   />
                 )}
+                
+                {asset.controls.some(c => c.type === 'FORENSICS_BONUS') && (
+                  <Text
+                    x={asset.position.x + 25}
+                    y={asset.position.y - 10}
+                    text="🔬"
+                    fontSize={16}
+                  />
+                )}
               </Group>
             );
           })}

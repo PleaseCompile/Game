@@ -7,6 +7,11 @@ import { checkVictoryConditions } from './victory';
 import { INITIAL_STATE } from './initialState';
 import { calculateBlueIncome, calculateRedIncome, getRedActionCost } from './redEconomy';
 
+// Defense reduction constants for attack success calculation
+const DEFENSE_REDUCTION_FIREWALL = 0.2;
+const DEFENSE_REDUCTION_IDS = 0.2;
+const DEFENSE_REDUCTION_FORENSICS = 0.15;
+
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case 'SELECT_ASSET':
@@ -377,9 +382,9 @@ function executeAction(
           
           // Calculate attack success rate
           let baseChance = 0.7;
-          if (hasFirewall) baseChance -= 0.2;
-          if (hasIDS) baseChance -= 0.2;
-          if (hasForensicsBonus) baseChance -= 0.15;
+          if (hasFirewall) baseChance -= DEFENSE_REDUCTION_FIREWALL;
+          if (hasIDS) baseChance -= DEFENSE_REDUCTION_IDS;
+          if (hasForensicsBonus) baseChance -= DEFENSE_REDUCTION_FORENSICS;
           
           const attackSuccess = Math.random() < baseChance;
           
@@ -527,6 +532,8 @@ function executeAction(
             };
             
             notifications.push(`🔍 วิเคราะห์ ${targetAsset.name} เสร็จสิ้น - เพิ่ม defense bonus!`);
+          } else {
+            notifications.push(`ℹ️ ${targetAsset.name} มี forensics bonus อยู่แล้ว`);
           }
         }
       }
